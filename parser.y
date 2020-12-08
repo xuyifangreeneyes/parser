@@ -27,6 +27,7 @@ package parser
 
 import (
 	"strings"
+	"fmt"
 
 	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/parser/ast"
@@ -7648,9 +7649,20 @@ SelectStmt:
 	}
 |	"VALUES" ValuesStmtList OrderByOptional SelectStmtLimitOpt SelectLockOpt SelectStmtIntoOption
 	{
+		lists := $2.([]*ast.RowExpr)
+		var fields []*ast.SelectField
+		if len(lists) > 0 {
+			numCols := len(lists[0].Values)
+			fields := make([]*ast.SelectField, 0, numCols)
+			for i := 0; i < numCols; i++ {
+				var := VariableExpr{Name: fmt.Sprintf("column_%v", i)}
+				fields = append(fields, &ast.SelectFields{Expr: var})
+			}
+		}
 		st := &ast.SelectStmt{
-			Kind:  ast.SelectStmtKindValues,
-			Lists: $2.([]*ast.RowExpr),
+			Kind:   ast.SelectStmtKindValues,
+			Fields: &ast.FieldList{Fields: fields},
+			Lists:  lists,
 		}
 		if $3 != nil {
 			st.OrderBy = $3.(*ast.OrderByClause)
