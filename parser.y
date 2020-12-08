@@ -7655,7 +7655,7 @@ SelectStmt:
 			numCols := len(lists[0].Values)
 			fields := make([]*ast.SelectField, 0, numCols)
 			for i := 0; i < numCols; i++ {
-				name := ast.VariableExpr{Name: fmt.Sprintf("column_%v", i)}
+				name := &ast.VariableExpr{Name: fmt.Sprintf("column_%v", i)}
 				fields = append(fields, &ast.SelectField{Expr: name})
 			}
 		}
